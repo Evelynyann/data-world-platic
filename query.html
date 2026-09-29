@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Query Land Use Data</title>
+  <link rel="stylesheet" href="static/style.css">
+  <!-- Add Leaflet CSS and JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Add Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="static/analysis.js"></script>
+</head>
+<body>
+  <h1>Query Land Use Data</h1>
+  
+  <!-- Add preset locations for developed countries (20) -->
+  <div class="preset-locations">
+    <h3>Coastal Cities (Developed Countries):</h3>
+    <div class="button-grid">
+      <!-- North America (5) -->
+      <button onclick="setLocation('San Francisco, USA', 37.7749, -122.4194)">San Francisco (West)</button>
+      <button onclick="setLocation('Miami, USA', 25.7617, -80.1918)">Miami (East)</button>
+      <button onclick="setLocation('Seattle, USA', 47.6062, -122.3321)">Seattle (West)</button>
+      <button onclick="setLocation('Vancouver, Canada', 49.2827, -123.1207)">Vancouver (Pacific)</button>
+      <button onclick="setLocation('Montreal, Canada', 45.5017, -73.5673)">Montreal (Atlantic)</button>
+
+      <!-- Europe (8) -->
+      <button onclick="setLocation('Rotterdam, Netherlands', 51.9225, 4.4792)">Rotterdam (North)</button>
+      <button onclick="setLocation('Hamburg, Germany', 53.5511, 9.9937)">Hamburg (North)</button>
+      <button onclick="setLocation('Marseille, France', 43.2965, 5.3698)">Marseille (Med)</button>
+      <button onclick="setLocation('Barcelona, Spain', 41.3851, 2.1734)">Barcelona (Med)</button>
+      <button onclick="setLocation('Piraeus, Greece', 37.9422, 23.6466)">Piraeus (Med)</button>
+      <button onclick="setLocation('Genoa, Italy', 44.4056, 8.9463)">Genoa (Med)</button>
+      <button onclick="setLocation('Copenhagen, Denmark', 55.6761, 12.5683)">Copenhagen (Baltic)</button>
+      <button onclick="setLocation('Bergen, Norway', 60.3913, 5.3221)">Bergen (Atlantic)</button>
+
+      <!-- Asia Pacific (7) -->
+      <button onclick="setLocation('Tokyo, Japan', 35.6762, 139.6503)">Tokyo (East)</button>
+      <button onclick="setLocation('Osaka, Japan', 34.6937, 135.5023)">Osaka (South)</button>
+      <button onclick="setLocation('Busan, South Korea', 35.1796, 129.0756)">Busan (South)</button>
+      <button onclick="setLocation('Sydney, Australia', -33.8688, 151.2093)">Sydney (East)</button>
+      <button onclick="setLocation('Melbourne, Australia', -37.8136, 144.9631)">Melbourne (South)</button>
+      <button onclick="setLocation('Auckland, New Zealand', -36.8509, 174.7645)">Auckland (Pacific)</button>
+      <button onclick="setLocation('Singapore', 1.3521, 103.8198)">Singapore</button>
+    </div>
+  </div>
+
+  <!-- Add preset locations for developing countries (20) -->
+  <div class="preset-locations">
+    <h3>Coastal Cities (Developing Countries):</h3>
+    <div class="button-grid">
+      <!-- Asia (8) -->
+      <button onclick="setLocation('Shanghai, China', 31.2304, 121.4737)">Shanghai (East)</button>
+      <button onclick="setLocation('Guangzhou, China', 23.1291, 113.2644)">Guangzhou (South)</button>
+      <button onclick="setLocation('Mumbai, India', 19.0760, 72.8777)">Mumbai (West)</button>
+      <button onclick="setLocation('Chennai, India', 13.0827, 80.2707)">Chennai (East)</button>
+      <button onclick="setLocation('Jakarta, Indonesia', -6.2088, 106.8456)">Jakarta (Java)</button>
+      <button onclick="setLocation('Ho Chi Minh City, Vietnam', 10.8231, 106.6297)">Ho Chi Minh City</button>
+      <button onclick="setLocation('Manila, Philippines', 14.5995, 120.9842)">Manila (Pacific)</button>
+      <button onclick="setLocation('Karachi, Pakistan', 24.8607, 67.0011)">Karachi (Arabian)</button>
+
+      <!-- Africa (6) -->
+      <button onclick="setLocation('Lagos, Nigeria', 6.5244, 3.3792)">Lagos (Atlantic)</button>
+      <button onclick="setLocation('Alexandria, Egypt', 31.2001, 29.9187)">Alexandria (Med)</button>
+      <button onclick="setLocation('Cape Town, South Africa', -33.9249, 18.4241)">Cape Town (Atlantic)</button>
+      <button onclick="setLocation('Casablanca, Morocco', 33.5731, -7.5898)">Casablanca (Atlantic)</button>
+      <button onclick="setLocation('Mombasa, Kenya', -4.0435, 39.6682)">Mombasa (Indian)</button>
+      <button onclick="setLocation('Dakar, Senegal', 14.7167, -17.4677)">Dakar (Atlantic)</button>
+
+      <!-- South/Central America (6) -->
+      <button onclick="setLocation('Rio de Janeiro, Brazil', -22.9068, -43.1729)">Rio (Atlantic)</button>
+      <button onclick="setLocation('Santos, Brazil', -23.9618, -46.3322)">Santos (Atlantic)</button>
+      <button onclick="setLocation('Lima, Peru', -12.0464, -77.0428)">Lima (Pacific)</button>
+      <button onclick="setLocation('Valparaiso, Chile', -33.0472, -71.6127)">Valparaiso (Pacific)</button>
+      <button onclick="setLocation('Cartagena, Colombia', 10.3932, -75.4832)">Cartagena (Caribbean)</button>
+      <button onclick="setLocation('Veracruz, Mexico', 19.2009, -96.1429)">Veracruz (Gulf)</button>
+    </div>
+  </div>
+
+  <form id="queryForm" onsubmit="fetchData(event)">
+    <label for="lat">Latitude:</label>
+    <input type="text" id="lat" name="lat" placeholder="e.g., 40.7128" required>
+    <br>
+    <label for="lon">Longitude:</label>
+    <input type="text" id="lon" name="lon" placeholder="e.g., -74.0060" required>
+    <br>
+    <label for="radius">Radius (meters):</label>
+    <input type="number" id="radius" name="radius" value="1000" required>
+    <br>
+    <label for="coastalDistance">Distance to Coast (km):</label>
+    <input type="number" id="coastalDistance" name="coastalDistance" value="6" required>
+    <br>
+    <button type="submit">Submit Query</button>
+  </form>
+
+  <!-- Add loading indicator -->
+  <div id="loading" style="display: none;">Loading...</div>
+
+  <div class="results-container">
+    <!-- Add map container -->
+    <div id="map" style="height: 400px; margin: 20px 0;"></div>
+
+    <!-- Main metrics cards -->
+    <div class="main-metrics">
+      <div class="metric-card residential">
+        <h3>Residential</h3>
+        <div class="large-number" id="residential-value">-</div>
+        <div class="trend" id="residential-trend"></div>
+      </div>
+      <div class="metric-card commercial">
+        <h3>Commercial</h3>
+        <div class="large-number" id="commercial-value">-</div>
+        <div class="trend" id="commercial-trend"></div>
+      </div>
+      <div class="metric-card industrial">
+        <h3>Industrial</h3>
+        <div class="large-number" id="industrial-value">-</div>
+        <div class="trend" id="industrial-trend"></div>
+      </div>
+      <div class="metric-card green-spaces">
+        <h3>Green Spaces</h3>
+        <div class="large-number" id="green-value">-</div>
+        <div class="trend" id="green-trend"></div>
+      </div>
+    </div>
+
+    <!-- Land Use Distribution Section -->
+    <div class="analysis-section">
+      <div class="chart-container">
+        <canvas id="landUseChart"></canvas>
+      </div>
+      <div class="chart-explanation">
+        <h4>Understanding Land Use Distribution</h4>
+        <p>This chart shows the breakdown of different land uses in the selected area:</p>
+        <div class="area-stats-grid">
+          <div class="area-stat-card">
+            <h5>Residential Areas</h5>
+            <div class="stat-details">
+              <div class="count" id="residential-count">-</div>
+            </div>
+            <p>Areas designated for housing and living spaces</p>
+          </div>
+          
+          <div class="area-stat-card">
+            <h5>Commercial Areas</h5>
+            <div class="stat-details">
+              <div class="count" id="commercial-count">-</div>
+            </div>
+            <p>Business and retail zones</p>
+          </div>
+          
+          <div class="area-stat-card">
+            <h5>Industrial Areas</h5>
+            <div class="stat-details">
+              <div class="count" id="industrial-count">-</div>
+            </div>
+            <p>Manufacturing and industrial facilities</p>
+          </div>
+        </div>
+        <p class="impact-note">Higher percentages of industrial and commercial areas may correlate with increased plastic waste generation.</p>
+      </div>
+    </div>
+
+    <!-- Charts section -->
+    <div class="charts-section">
+      <div class="chart-container">
+        <canvas id="environmentalMetricsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Add plastic concentration metrics -->
+    <div class="plastic-metrics">
+      <h3>Marine Plastic Analysis</h3>
+      
+      <!-- Main metrics cards -->
+      <div class="plastic-grid">
+        <div class="plastic-card">
+          <h4>Plastic Concentration</h4>
+          <div class="large-number" id="plastic-value">-</div>
+          <div class="trend" id="plastic-trend">-</div>
+        </div>
+        <div class="plastic-card">
+          <h4>Regional Average</h4>
+          <div class="large-number" id="plastic-average">-</div>
+          <div class="comparison" id="plastic-comparison">-</div>
+        </div>
+        <div class="plastic-card">
+          <h4>Impact Level</h4>
+          <div class="large-number" id="plastic-impact">-</div>
+          <div class="trend" id="impact-trend">-</div>
+        </div>
+      </div>
+
+      <!-- Histogram Section -->
+      <div class="analysis-section">
+        <div class="chart-container">
+          <canvas id="plasticTrendChart"></canvas>
+        </div>
+        <div class="chart-explanation">
+          <h4>Understanding Plastic Concentration Distribution</h4>
+          <p>This histogram shows the frequency distribution of plastic concentration measurements:</p>
+          <ul>
+            <li><strong>X-axis:</strong> Ranges of plastic concentration values</li>
+            <li><strong>Y-axis:</strong> Number of measurements in each range</li>
+          </ul>
+          <p>The shape of the distribution indicates the variability and typical levels of plastic concentration in the area.</p>
+        </div>
+      </div>
+
+      <!-- Raw Stats Section -->
+      <div class="raw-stats-panel">
+        <h4>Raw Statistics Analysis</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <label>Sample Count:</label>
+            <span id="plastic-sample-count">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Mean Concentration:</label>
+            <span id="plastic-mean">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Median Concentration:</label>
+            <span id="plastic-median">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Standard Deviation:</label>
+            <span id="plastic-std">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Min Value:</label>
+            <span id="plastic-min">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Max Value:</label>
+            <span id="plastic-max">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Percentile (90th):</label>
+            <span id="plastic-percentile-90">-</span>
+          </div>
+          <div class="stat-item">
+            <label>Variance:</label>
+            <span id="plastic-variance">-</span>
+          </div>
+        </div>
+        <div class="stats-explanation">
+          <p>These statistics provide detailed insights into the plastic concentration measurements:</p>
+          <ul>
+            <li><strong>Mean vs Median:</strong> Comparison indicates the symmetry of distribution</li>
+            <li><strong>Standard Deviation:</strong> Shows the spread of measurements</li>
+            <li><strong>90th Percentile:</strong> Indicates the upper threshold of typical measurements</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Existing results div -->
+    <div id="results"></div>
+  </div>
+
+  <p><a href="index.html">Back to Home</a></p>
+
+  <script>
+    let map;
+    let landUseChart;
+    let environmentalChart;
+    let plasticTrendChart;
+
+    function initializeMap() {
+      map = L.map('map').setView([0, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
+    function updateCharts(data) {
+      // Land Use Distribution Chart
+      const landUseCtx = document.getElementById('landUseChart').getContext('2d');
+      if (landUseChart) {
+        landUseChart.destroy();
+      }
+      
+      // Get counts from detailed_breakdown
+      const counts = [
+        data.analysis.detailed_breakdown.residential || 0,
+        data.analysis.detailed_breakdown.commercial || 0,
+        data.analysis.detailed_breakdown.industrial || 0
+      ];
+      
+      landUseChart = new Chart(landUseCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Residential', 'Commercial', 'Industrial'],
+          datasets: [{
+            data: counts,
+            backgroundColor: [
+              '#FF9999',
+              '#99B3FF',
+              '#FFB366'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Land Use Distribution (by count)'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = counts.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.raw / total) * 100).toFixed(2);
+                  return `${context.label}: ${context.raw} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      // Environmental Metrics Chart
+      const envCtx = document.getElementById('environmentalMetricsChart').getContext('2d');
+      if (environmentalChart) {
+        environmentalChart.destroy();
+      }
+      environmentalChart = new Chart(envCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Green Space Ratio', 'Urban Density', 'Natural Buffer Zones'],
+          datasets: [{
+            label: 'Environmental Metrics',
+            data: [
+              data.analysis.environmental_metrics.green_space_ratio,
+              data.analysis.environmental_metrics.urban_density,
+              data.analysis.environmental_metrics.natural_buffer_zones
+            ],
+            backgroundColor: ['#90EE90', '#FFB366', '#99B3FF']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Environmental Metrics'
+            }
+          }
+        }
+      });
+    }
+
+    function setLocation(city, lat, lon) {
+      document.getElementById('lat').value = lat;
+      document.getElementById('lon').value = lon;
+      fetchData(new Event('submit'));
+    }
+
+    async function fetchData(event) {
+      event.preventDefault();
+      
+      const loadingDiv = document.getElementById('loading');
+      const resultsDiv = document.getElementById('results');
+      
+      loadingDiv.style.display = 'block';
+      resultsDiv.innerHTML = '';
+      
+      const lat = document.getElementById('lat').value;
+      const lon = document.getElementById('lon').value;
+      const radius = document.getElementById('radius').value;
+      const coastalDistance = document.getElementById('coastalDistance').value;
+      
+      try {
+        const data = await runAnalysis(parseFloat(lat), parseFloat(lon), parseInt(radius), parseFloat(coastalDistance));
+        
+            // Update map
+          map.setView([lat, lon], 14);
+          L.circle([lat, lon], {
+            radius: parseInt(radius),
+            color: 'blue',
+            fillColor: '#30f',
+            fillOpacity: 0.2
+          }).addTo(map);
+
+          // Update main metrics
+          document.getElementById('residential-value').textContent = 
+            `${parseFloat(data.analysis.land_features.residential_area || data.analysis.land_features.residential).toFixed(2)}%`;
+          document.getElementById('commercial-value').textContent = 
+            `${parseFloat(data.analysis.land_features.commercial_area || data.analysis.land_features.commercial).toFixed(2)}%`;
+          document.getElementById('industrial-value').textContent = 
+            `${parseFloat(data.analysis.land_features.industrial_area || data.analysis.land_features.industrial).toFixed(2)}%`;
+          document.getElementById('green-value').textContent = 
+            `${(parseFloat(data.analysis.land_features.natural) + parseFloat(data.analysis.land_features.recreational)).toFixed(2)}%`;
+
+          // Update charts
+          updateCharts(data);
+
+          // Update plastic concentration metrics
+          document.getElementById('plastic-value').textContent = data.analysis.plastic_concentration;
+          document.getElementById('plastic-trend').textContent = data.analysis.plastic_trend;
+          document.getElementById('plastic-average').textContent = 
+            `${data.analysis.regional_averages?.plastic_concentration || 'N/A'}`;
+          document.getElementById('plastic-impact').textContent = 
+            getImpactLevel(data.analysis.plastic_concentration);
+          
+          // Update plastic trend chart
+          updatePlasticTrendChart(data);
+
+          // Update land use statistics
+          document.getElementById('residential-count').textContent = 
+            `Count: ${data.analysis.detailed_breakdown.residential || 0}`;
+            
+          document.getElementById('commercial-count').textContent = 
+            `Count: ${data.analysis.detailed_breakdown.commercial || 0}`;
+            
+          document.getElementById('industrial-count').textContent = 
+            `Count: ${data.analysis.detailed_breakdown.industrial || 0}`;
+
+          // Update existing detailed results
+          resultsDiv.innerHTML = `
+            <h2>Coastal Analysis Results:</h2>
+            <div class="analysis-container">
+              <h3>Environmental Impact Analysis:</h3>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <h4>Overall Impact Score</h4>
+                  <div class="stat-value">${data.analysis.impact_score}</div>
+                  <div class="trend">${data.analysis.score_trend || 'N/A'}</div>
+                </div>
+                <div class="stat-box">
+                  <h4>Coastal Vulnerability</h4>
+                  <div class="stat-value">${data.analysis.coastal_vulnerability || 'N/A'}</div>
+                </div>
+                <div class="stat-box">
+                  <h4>Marine Health Index</h4>
+                  <div class="stat-value">${data.analysis.marine_health_index || 'N/A'}</div>
+                </div>
+              </div>
+
+              <div class="detailed-stats">
+                <h3>Land Use Distribution:</h3>
+                <div class="stats-grid">
+                  <div class="stat-box">
+                    <h4>Residential</h4>
+                    <div class="stat-value">${data.analysis.regional_averages?.residential || 'N/A'}%</div>
+                  </div>
+                  <div class="stat-box">
+                    <h4>Commercial</h4>
+                    <div class="stat-value">${data.analysis.regional_averages?.commercial || 'N/A'}%</div>
+
+                  </div>
+                  <div class="stat-box">
+                    <h4>Industrial</h4>
+                    <div class="stat-value">${data.analysis.regional_averages?.commercial || 'N/A'}%</div>
+
+                  </div>
+                </div>
+
+                <div class="coastal-metrics">
+                  <h3>Coastal Metrics:</h3>
+                  <div class="stats-grid">
+                    <div class="stat-box">
+                      <h4>Beach Quality</h4>
+                      <div class="stat-value">${data.analysis.coastal_metrics?.beach_quality || 'N/A'}</div>
+                    </div>
+                    <div class="stat-box">
+                      <h4>Water Quality</h4>
+                      <div class="stat-value">${data.analysis.coastal_metrics?.water_quality || 'N/A'}</div>
+                    </div>
+                    <div class="stat-box">
+                      <h4>Erosion Risk</h4>
+                      <div class="stat-value">${data.analysis.coastal_metrics?.erosion_risk || 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="marine-status">
+                  <h3>Marine Environment:</h3>
+                  <div class="stats-grid">
+                    <div class="stat-box">
+                      <h4>Marine Biodiversity</h4>
+                      <div class="stat-value">${data.analysis.marine_biodiversity || 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="error-message">
+            Error: ${error.message}
+          </div>
+        `;
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    }
+
+    function updatePlasticTrendChart(data) {
+      const plasticCtx = document.getElementById('plasticTrendChart').getContext('2d');
+      if (plasticTrendChart) {
+        plasticTrendChart.destroy();
+      }
+
+      // Generate histogram data from historical values
+      const historicalData = data.analysis.plastic_historical;
+      const binCount = 7; // Number of bins for histogram
+      
+      // Calculate bins
+      const min = Math.min(...historicalData);
+      const max = Math.max(...historicalData);
+      const binWidth = (max - min) / binCount;
+      
+      const bins = Array(binCount).fill(0);
+      const binLabels = [];
+      
+      // Create bin labels
+      for (let i = 0; i < binCount; i++) {
+        const binStart = min + (i * binWidth);
+        const binEnd = binStart + binWidth;
+        binLabels.push(`${binStart.toFixed(2)}-${binEnd.toFixed(2)}`);
+      }
+      
+      // Fill bins
+      historicalData.forEach(value => {
+        const binIndex = Math.min(
+          Math.floor((value - min) / binWidth),
+          binCount - 1
+        );
+        bins[binIndex]++;
+      });
+
+      plasticTrendChart = new Chart(plasticCtx, {
+        type: 'bar', // Using bar type for histogram
+        data: {
+          labels: binLabels,
+          datasets: [{
+            label: 'Frequency',
+            data: bins,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Distribution of Plastic Concentration Measurements'
+            },
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Frequency'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Concentration Range'
+              }
+            }
+          }
+        }
+      });
+
+      // Update raw statistics
+      updateRawStatistics(data);
+    }
+
+    function updateRawStatistics(data) {
+      const historicalData = data.analysis.plastic_historical;
+      
+      // Calculate statistics
+      const mean = historicalData.reduce((a, b) => a + b) / historicalData.length;
+      const sortedData = [...historicalData].sort((a, b) => a - b);
+      const median = sortedData[Math.floor(sortedData.length / 2)];
+      const variance = historicalData.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / historicalData.length;
+      const std = Math.sqrt(variance);
+      const min = Math.min(...historicalData);
+      const max = Math.max(...historicalData);
+      const percentile90 = sortedData[Math.floor(sortedData.length * 0.9)];
+
+      // Update DOM elements with 2 decimal places
+      document.getElementById('plastic-sample-count').textContent = historicalData.length;
+      document.getElementById('plastic-mean').textContent = mean.toFixed(2);
+      document.getElementById('plastic-median').textContent = median.toFixed(2);
+      document.getElementById('plastic-std').textContent = std.toFixed(2);
+      document.getElementById('plastic-min').textContent = min.toFixed(2);
+      document.getElementById('plastic-max').textContent = max.toFixed(2);
+      document.getElementById('plastic-percentile-90').textContent = percentile90.toFixed(2);
+      document.getElementById('plastic-variance').textContent = variance.toFixed(2);
+    }
+
+    function getImpactLevel(concentration) {
+      if (concentration === 'Low') return 'Minimal Impact';
+      if (concentration === 'Medium') return 'Moderate Impact';
+      if (concentration === 'High') return 'Severe Impact';
+      return 'N/A';
+    }
+
+    function calculateProjectedValue(data) {
+      // Simple projection based on current trend
+      const baseValue = parseFloat(data.analysis.plastic_concentration) || 0;
+      const trend = data.analysis.plastic_trend;
+      
+      if (trend === 'Improving') return baseValue * 0.8;
+      if (trend === 'Worsening') return baseValue * 1.2;
+      return baseValue;
+    }
+
+    // Initialize map on page load
+    document.addEventListener('DOMContentLoaded', initializeMap);
+  </script>
+
+  <style>
+    .preset-locations {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .preset-locations h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .preset-locations button {
+      width: 100%;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .preset-locations button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 768px) {
+      .button-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        max-height: 400px;
+      }
+
+      .preset-locations button {
+        padding: 12px 8px;
+        font-size: 13px;
+      }
+
+      .main-metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .plastic-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .area-stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .charts-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .button-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .main-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-card {
+        padding: 15px;
+      }
+
+      .large-number {
+        font-size: 24px;
+      }
+
+      #map {
+        height: 300px;
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .stat-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2196F3;
+    }
+
+    .error-message {
+      color: #dc3545;
+      padding: 10px;
+      background: #f8d7da;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    #loading {
+      text-align: center;
+      margin: 20px 0;
+      font-style: italic;
+      color: #666;
+    }
+
+    .trend {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .detailed-stats {
+      margin-top: 30px;
+    }
+
+    .coastal-metrics {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f0f8ff;
+      border-radius: 8px;
+    }
+
+    .marine-status {
+      margin-top: 30px;
+      padding: 20px;
+      background: #e6f3ff;
+      border-radius: 8px;
+    }
+
+    .analysis-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .results-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .main-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .metric-card {
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .metric-card.residential { background: #FFF5F5; }
+    .metric-card.commercial { background: #F5F8FF; }
+    .metric-card.industrial { background: #FFF8F0; }
+    .metric-card.green-spaces { background: #F0FFF0; }
+
+    .large-number {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .charts-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .plastic-metrics {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .plastic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .plastic-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .plastic-card h4 {
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .comparison {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .trend.improving { color: #28a745; }
+    .trend.worsening { color: #dc3545; }
+    .trend.stable { color: #ffc107; }
+
+    .raw-stats-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat-item {
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .stat-item label {
+      display: block;
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .stat-item span {
+      font-size: 1.1em;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .analysis-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .chart-explanation {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .chart-explanation h4 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    .chart-explanation ul {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+
+    .chart-explanation li {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    .stats-explanation {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .stats-explanation ul {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+
+    .stats-explanation li {
+      margin: 5px 0;
+    }
+
+    .area-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .area-stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .area-stat-card h5 {
+      color: #2c3e50;
+      margin: 0 0 10px 0;
+      font-size: 1.1em;
+    }
+
+    .stat-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .count {
+      font-size: 1.1em;
+      color: #7f8c8d;
+    }
+
+    .area-stat-card p {
+      margin: 10px 0 0 0;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .impact-note {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-left: 4px solid #3498db;
+      color: #666;
+    }
+  </style>
+</body>
+</html>

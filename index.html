@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Land Use Analysis</title>
+  <link rel="stylesheet" href="static/style.css">
+  <style>
+    body {
+      background-image: url("static/bg.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .author-info {
+      text-align: center;
+      color: white;
+      font-style: italic;
+      margin: 20px 0;
+      opacity: 0.9;
+    }
+    .author-info div {
+      margin: 5px 0;
+    }
+    h1 {
+      font-size: 3.5rem;
+      margin: 2rem 0;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .description {
+      margin: 2rem auto;
+      line-height: 1.8;
+      font-size: 1.2rem;
+      max-width: 600px;
+      opacity: 0.9;
+    }
+    .cta-button {
+      display: inline-block;
+      padding: 16px 32px;
+      background-color: #FF6B6B;
+      color: white;
+      text-decoration: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .cta-button:hover {
+      background-color: #FF5252;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+    }
+    #lottie-container-right {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 100px;
+      height: 100px;
+      z-index: 100;
+    }
+    #lottie-container-left {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
+      z-index: 100;
+      transform: scaleX(-1);
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="author-info">
+      <div>Ruitong Yan</div>
+      <div>High School Attached to Northeast Normal University</div>
+    </div>
+    
+    <h1>Marine Plastic & Land Use Analysis</h1>
+    
+    <div class="description">
+      Analyze the relationship between land use patterns and marine plastic pollution. 
+      Input any location to receive detailed insights about urban development, environmental impact, 
+      and estimated marine plastic concentrations.
+
+    </div>
+
+    <a href="query.html" class="cta-button">Take Action</a>
+  </div>
+
+  <div id="lottie-container-right"></div>
+  <div id="lottie-container-left"></div>
+  <script>
+    lottie.loadAnimation({
+      container: document.getElementById('lottie-container-right'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: "static/lottie.json"
+    });
+
+    lottie.loadAnimation({
+      container: document.getElementById('lottie-container-left'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: "static/lottie.json"
+    });
+  </script>
+</body>
+</html>
